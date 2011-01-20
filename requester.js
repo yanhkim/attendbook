@@ -19,10 +19,12 @@ Requester.prototype = {
 		this.requestchain(command);
 	},
 	requestchain: function(c) {
-		if (c === undefined) {
+		if (c == undefined) {
 			console.log('close');
 			return;
 		}
+
+		this.activeCommand = c;
 
 		var header = this.prepareHeader(c);
 		var req = this.client.request(c.method, c.path, header);
@@ -79,18 +81,23 @@ Requester.prototype = {
 	bindHandler: function(r, onHeader, onData, onEnd) {
 		var context = this;
 		return function(r) {
-			if (onHeader)
+			if (onHeader) {
 				onHeader(context, r);
+				context.activeCommand.onHeader(r.headers);
+			}
 
-			if (onData)
+			if (onData) {
 				r.on('data', function(c) {
 					onData(context, c);
+					context.activeCommand.onData(c);
 				});
+			}
 
-			if (onEnd)
+			if (onEnd) {
 				r.on('end', function() {
 					onEnd(context);
 				});
+			}
 		}
 	},
 	connector: function(context) {
@@ -142,6 +149,7 @@ function Command(method, path) {
 	this.method = method;
 	this.path = path;
 	this.header = {};
+	this.callbacks = {};
 }
 
 Command.prototype = {
@@ -154,16 +162,25 @@ Command.prototype = {
 	setHeader: function(name, value) {
 		this.header[name] = value;
 		return this;
+	},
+	on: function(event, callback) {
+		this.callbacks[event] = callback;
+	},
+	onEvent: function(name, arg) {
+		var cb = this.callbacks[name];
+		if (cb)
+			cb(arg);
+	},
+	onHeader: function(header) {
+		onEvent('hader', header);
+	},
+	onData: function(data) {
+		onEvent('data', data);
 	}
 };
 
-exports.createRequester = function(client, commands) {
-	return new Requester(client, commands);
-};
-
-exports.createCommand = function(method, path) {
-	return new Command(method, path);
-}
+exports.Requester = Requester;
+exports.Command = Command;
 
 /*
 var http = require('http');
