@@ -55,11 +55,11 @@ var SQL_CREATE_TABLE =
 
 var SQL_INSERT =
 "INSERT INTO records (id, date, rank, grade, late_rate, avg_facetime, avg_latetime, point)\n" +
-"VALUES ({0}, DATETIME('NOW', 'LOCALTIME'), {1}, {2}, {3}, {4}, {5}, {6});";
+"VALUES ('{0}', DATETIME('NOW', 'LOCALTIME'), {1}, '{2}', {3}, '{4}', '{5}', {6});";
 
 var SQL_QUERY =
-"SELECT date, rank, grade, late_rate, avg_facetime, avg_latetime, point\n" +
-"FROM records WHERE id = {0} ORDER BY date DESC;";
+"SELECT id, date, rank, grade, late_rate, avg_facetime, avg_latetime, point\n" +
+"FROM records WHERE id = '{0}' ORDER BY date DESC;";
 
 db.open('attendbook.db', function (error) {
 	if (error) {
@@ -102,7 +102,7 @@ function insert(data) {
 		lock.clear();	//error or not, clear the lock.
 
 		if (error) {
-			console.log('db.js: error on attempt to insert row - ' + JSON.stringify(data));
+			console.log('db.js: error on attempt to insert row - ' + JSON.stringify(data) + '\nSQL: ' + sql);
 			throw error;
 		}
 	});
@@ -116,11 +116,17 @@ function query(key, onData) {
 		lock.clear();
 
 		if (error) {
-			console.log('db.js: error on attempt to query for - ' + key);
+			console.log('db.js: error on attempt to query for - ' + key + '\nSQL: ' + sql);
 			throw error;
 		}
 
-		exports.foo = rows;
+		var datas = [];
+		for (var i = 0; i < rows.length; i++) {
+			var row = rows[i];
+			datas.push(new Data().readfrom(row));
+		}
+
+		onData(datas);
 	});
 }
 
@@ -147,8 +153,20 @@ function Data(key, rank, grade, lrate, aftime, altime, point) {
 Data.prototype = {
 	fillSQL: function(template) {
 		return format(template, this.key, this.rank, this.grade, this.lrate, this.aftime, this.altime, this.point);
+	},
+	readfrom function(row) {
+		this.key = unescape(row.id);
+		this.date = new Date(row.date);
+		this.rank = row.rank;
+		this.grade = unescape(row.grade);
+		this.lrate = row.late_rate;
+		this.aftime = unescape(row.avg_facetime);
+		this.altime = unescape(row.avg_latetime);
+		this.point = row.point;
 	}
 };
+
+exports.Data = Data;
 
 exports.insert = function(data) {
 	if (lock.p()) {
