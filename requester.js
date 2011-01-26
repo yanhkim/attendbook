@@ -114,8 +114,12 @@ Requester.prototype = {
 	},
 	traceBody: function(context, c) {
 		console.log('BODY: ' + c);
+
+		exports.foo = c;
 	},
 	headerHandler: function(context, r) {
+		//r.setEncoding('euc-kr');
+
 		var header = r.headers,
 		rawCookies = header['set-cookie'];
 
@@ -172,17 +176,16 @@ Command.prototype = {
 			cb(arg);
 	},
 	onHeader: function(header) {
-		onEvent('hader', header);
+		this.onEvent('header', header);
 	},
 	onData: function(data) {
-		onEvent('data', data);
+		this.onEvent('data', data);
 	}
 };
 
 exports.Requester = Requester;
 exports.Command = Command;
 
-/*
 var http = require('http');
 var infra = http.createClient(80, 'www.infraware.net');
 
