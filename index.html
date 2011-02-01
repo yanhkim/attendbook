@@ -1,0 +1,71 @@
+<!doctype html>
+
+<html>
+
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8"> 
+<link rel="stylesheet" href="style.css" type="text/css" />
+<script src="jquery.js" type="text/javascript"></script>
+<!--script src="client.js" type="text/javascript"></script-->
+<title>attendbook</title>
+</head>
+
+<body>
+<div id="app">
+	<div id="connect">
+		<div id="login-form">
+			<form>
+				<fieldset>
+				<p>
+					signin with your intranet account
+				</p>
+				<label for="id">ID</label>
+				<input id="login-id" type="text" name="id" />
+				<label for="password">password</label>
+				<input id="login-password" type="password" name="password" />
+				<input id="login-button" type="submit" value="signin" />
+				<!--label for="save-account">save account</label>
+				<input id="login-save-account" type="checkbox" name="save-account" /-->
+				</fieldset>
+			</form>
+
+		</div>
+		<div id="login-click">
+			<!--span id="savedID">foobar</span> right?
+			<input type="button" value="click to signin" />
+			<input type="button" value="signin and don't ask" /-->
+		</div>
+		<div id="login-auto">
+		</div>
+	</div>
+	<div id="loading">
+		<h4>connecting..</h4>
+	</div>
+	<div id="record">
+		<p>
+			<span id="user-name">foobar</span>'s today record
+		</p>
+		<table><tbody>
+			<tr>
+				<th>순위</th>
+				<th>등급</th>
+				<th>지각률</th>
+				<th>평균상주시간</th>
+				<th>평균지각시간</th>
+				<th>총점</th>
+			</tr>
+			<tr>
+				<td id="record-rank">105</td>
+				<td id="record-grade">B</td>
+				<td id="record-late-rate">0</td>
+				<td id="record-avg-facetime">10:22</td>
+				<td id="record-avg-latetime">0</td>
+				<td id="record-score">81.72</td>
+			</tr>
+		</tbody></table>
+	</div>
+</div>
+</body>
+
+</html>
+

@@ -1,6 +1,8 @@
 HOST = null; // localhost
 PORT = 8001;
 
+DEBUG = false;
+
 // when the daemon started
 var starttime = (new Date()).getTime();
 
@@ -63,23 +65,10 @@ fu.listen(Number(process.env.PORT || PORT), HOST);
 fu.get("/", fu.staticHandler("index.html"));
 fu.get("/style.css", fu.staticHandler("style.css"));
 fu.get("/client.js", fu.staticHandler("client.js"));
-fu.get("/jquery-1.2.6.min.js", fu.staticHandler("jquery-1.2.6.min.js"));
-
-
-fu.get("/who", function (req, res) {
-  var nicks = [];
-  for (var id in sessions) {
-    if (!sessions.hasOwnProperty(id)) continue;
-    var session = sessions[id];
-    nicks.push(session.nick);
-  }
-  res.simpleJSON(200, { nicks: nicks
-                      , rss: mem.rss
-                      });
-});
+fu.get("/jquery.js", fu.staticHandler(DEBUG ? "jquery-1.4.4.js" : "jquery-1.4.4.min.js"));
 
 fu.get("/join", function (req, res) {
-  var q = url.parse(req.url, true).query,
+  var q = url.parse(req.url, true).query;
 
   var session = createSession(q.id);
   if (session == null) {
