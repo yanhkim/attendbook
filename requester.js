@@ -1,10 +1,12 @@
-function Requester(client, commands) {
-	this.client = client;
-	this.host = client.host;
-	this.commands = commands.reverse();	//for using javascript's own pop|push function
+var http = require('http');
+console.log('http module loaded');
+
+function Requester(host) {
+	this.client = http.createclient(80, host);
+	this.host = host;
 
 	this.default_header = {
-		'Host': this.host,
+		'Host': host,
 		'Connection': 'keep-alive',
 		'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/534.10 (KHTML, like Gecko) Chrome/8.0.552.237 Safari/534.10',
 		'Accept': 'application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5',
@@ -14,6 +16,9 @@ function Requester(client, commands) {
 }
 
 Requester.prototype = {
+	setCommands: function() {
+		this.commands = commands.reverse();	//for using javascript's own pop|push function
+	},
 	run: function() {
 		var command = this.commands.pop();
 		this.requestchain(command);
@@ -35,7 +40,7 @@ Requester.prototype = {
 		req.end();
 
 		//req.on('response', this.bindHandler(req, this.traceHead, this.traceBody, this.connector));
-		req.on('response', this.bindHandler(req, this.headerHandler, this.traceBody, this.connector));
+		req.on('response', this.bindHandler(req, this.headerHandler, null, this.connector));
 	},
 	prepareHeader: function(c) {
 		var copy = function(d, s) {
@@ -81,23 +86,17 @@ Requester.prototype = {
 	bindHandler: function(r, onHeader, onData, onEnd) {
 		var context = this;
 		return function(r) {
-			if (onHeader) {
-				onHeader(context, r);
-				context.activeCommand.onHeader(r.headers);
-			}
+			onHeader && onHeader(context, r);
+			context.activeCommand.onHeader(r.headers);
 
-			if (onData) {
-				r.on('data', function(c) {
-					onData(context, c);
-					context.activeCommand.onData(c);
-				});
-			}
+			r.on('data', function(c) {
+				onData && onData(context, c);
+				context.activeCommand.onData(c);
+			});
 
-			if (onEnd) {
-				r.on('end', function() {
-					onEnd(context);
-				});
-			}
+			r.on('end', function() {
+				onEnd && onEnd(context);
+			});
 		}
 	},
 	connector: function(context) {
@@ -115,7 +114,7 @@ Requester.prototype = {
 	traceBody: function(context, c) {
 		console.log('BODY: ' + c);
 
-		exports.foo = c;
+		//exports.foo = c;
 	},
 	headerHandler: function(context, r) {
 		//r.setEncoding('euc-kr');
@@ -186,8 +185,9 @@ Command.prototype = {
 exports.Requester = Requester;
 exports.Command = Command;
 
+/*
 var http = require('http');
-var infra = http.createClient(80, 'www.infraware.net');
+var infra = http.createclient(80, 'www.infraware.net');
 
 var commands = [];
 
@@ -205,6 +205,7 @@ commands.push(command);
 //var foo = new requester(google, [{method: 'GET', path: '/'}, {method: 'GET', path: '/m/search?q=test'}]);
 var foo = new Requester(infra, commands);
 foo.run();
+*/
 
 /*
 var request = google.request('GET', '/', {'host': 'www.google.com'});

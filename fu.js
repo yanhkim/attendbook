@@ -2,7 +2,7 @@ var createServer = require("http").createServer;
 var readFile = require("fs").readFile;
 var sys = require("sys");
 var url = require("url");
-DEBUG = false;
+DEBUG = true;
 
 var fu = exports;
 
@@ -56,6 +56,40 @@ function extname (path) {
 }
 
 fu.staticHandler = function (filename) {
+  var body, headers;
+  var content_type = fu.mime.lookupExtension(extname(filename));
+
+  function loadResponseData(callback) {
+    if (body && headers && !DEBUG) {
+      callback();
+      return;
+    }
+
+    sys.puts("loading " + filename + "...");
+    readFile(filename, function (err, data) {
+      if (err) {
+        sys.puts("Error loading " + filename);
+      } else {
+        body = data;
+        headers = { "Content-Type": content_type
+                  , "Content-Length": body.length
+                  };
+        if (!DEBUG) headers["Cache-Control"] = "public";
+        sys.puts("static file " + filename + " loaded");
+        callback();
+      }
+    });
+  }
+
+  return function (req, res) {
+    loadResponseData(function () {
+      res.writeHead(200, headers);
+      res.end(req.method === "HEAD" ? "" : body);
+    });
+  }
+};
+
+fu.dynamicHandler = function (filename) {
   var body, headers;
   var content_type = fu.mime.lookupExtension(extname(filename));
 

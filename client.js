@@ -344,32 +344,6 @@ function send(msg) {
   }
 }
 
-//Transition the page to the state that prompts the user for a nickname
-function showConnect () {
-  $("#connect").show();
-  $("#loading").hide();
-  $("#toolbar").hide();
-  $("#nickInput").focus();
-}
-
-//transition the page to the loading screen
-function showLoad () {
-  $("#connect").hide();
-  $("#loading").show();
-  $("#toolbar").hide();
-}
-
-//transition the page to the main chat view, putting the cursor in the textfield
-function showChat (nick) {
-  $("#toolbar").show();
-  $("#entry").focus();
-
-  $("#connect").hide();
-  $("#loading").hide();
-
-  scrollDown();
-}
-
 //we want to show a count of unread messages when the window does not have focus
 function updateTitle(){
   if (CONFIG.unread) {
@@ -415,93 +389,49 @@ function onConnect (session) {
   });
 }
 
-//add a list of present chat members to the stream
-function outputUsers () {
-  var nick_string = nicks.length > 0 ? nicks.join(", ") : "(none)";
-  addMessage("users:", nick_string, new Date(), "notice");
-  return false;
+function showLoading() {
+	$('#connect').hide();
+	$('#loading').show();
+	$('#record').hide();
 }
 
-//get a list of the users presently in the room, and add it to the stream
-function who () {
-  jQuery.get("/who", {}, function (data, status) {
-    if (status != "success") return;
-    nicks = data.nicks;
-    outputUsers();
-  }, "json");
+function showConnect() {
+	$('#connect').show();
+	$('#loading').hide();
+	$('#record').hide();
+	$('#signin-id').focus();
 }
 
 $(document).ready(function() {
+	$('#signin-button').click(function (event) {
+		event.stopPropagation();
+		event.preventDefault();
 
-  //submit new messages when the user hits enter if the message isnt blank
-  $("#entry").keypress(function (e) {
-    if (e.keyCode != 13 /* Return */) return;
-    var msg = $("#entry").attr("value").replace("\n", "");
-    if (!util.isBlank(msg)) send(msg);
-    $("#entry").attr("value", ""); // clear the entry field.
-  });
+		showLoading();
+		$.ajax({
+			cache: false,
+			dataType: 'json',
+			url: '/join',
+			data: { id: $('#signin-id').val() , pwd: $('#signin-password').val(), direct: true },
+			error: function() {
+				alert('signin error');
+				showConnect();
+			},
+			success: onSignin
+		});
+		return false;
+	});
 
-  $("#usersLink").click(outputUsers);
-
-  //try joining the chat when the user clicks the connect button
-  $("#connectButton").click(function () {
-    //lock the UI while waiting for a response
-    showLoad();
-    var nick = $("#nickInput").attr("value");
-
-    //dont bother the backend if we fail easy validations
-    if (nick.length > 50) {
-      alert("Nick too long. 50 character max.");
-      showConnect();
-      return false;
-    }
-
-    //more validations
-    if (/[^\w_\-^!]/.exec(nick)) {
-      alert("Bad character in nick. Can only have letters, numbers, and '_', '-', '^', '!'");
-      showConnect();
-      return false;
-    }
-
-    //make the actual join request to the server
-    $.ajax({ cache: false
-           , type: "GET" // XXX should be POST
-           , dataType: "json"
-           , url: "/join"
-           , data: { nick: nick }
-           , error: function () {
-               alert("error connecting to server");
-               showConnect();
-             }
-           , success: onConnect
-           });
-    return false;
-  });
-
-  // update the daemon uptime every 10 seconds
-  setInterval(function () {
-    updateUptime();
-  }, 10*1000);
-
-  if (CONFIG.debug) {
-    $("#loading").hide();
-    $("#connect").hide();
-    scrollDown();
-    return;
-  }
-
-  // remove fixtures
-  $("#log table").remove();
-
-  //begin listening for updates right away
-  //interestingly, we don't need to join a room to get its updates
-  //we just don't show the chat stream to the user until we create a session
-  longPoll();
-
-  showConnect();
+	showConnect();
 });
 
+function onSignin (session) {
+	alert(JSON.stringify(session));
+}
+
 //if we can, notify the server that we're going away.
+/*
 $(window).unload(function () {
   jQuery.get("/part", {id: CONFIG.id}, function (data) { }, "json");
 });
+*/

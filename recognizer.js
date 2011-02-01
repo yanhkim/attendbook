@@ -22,8 +22,12 @@ function read(raw, charset) {
 			if (t != 'time')
 				return v;
 
-			var hm = v.match(/[0-9]+/g),
-			h = hm[1] ? hm[0] : '0',
+			var hm = v.match(/[0-9]+/g);
+
+			console.log('recognizer.js: format() input text: ' + v);
+			console.log('recognizer.js: format() regex result: ' + JSON.stringify(hm));
+
+			var h = hm[1] ? hm[0] : '0',
 			m = hm[1] ? hm[1] : hm[0];
 
 			if (h < 10 && h.length == 1)

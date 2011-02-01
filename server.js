@@ -1,5 +1,5 @@
 HOST = null; // localhost
-PORT = 8001;
+PORT = 8002;
 
 DEBUG = false;
 
@@ -37,7 +37,6 @@ function createSession (nick) {
     },
 
     destroy: function () {
-      channel.appendMessage(session.nick, "part");
       delete sessions[session.id];
     }
   };
@@ -67,6 +66,12 @@ fu.get("/style.css", fu.staticHandler("style.css"));
 fu.get("/client.js", fu.staticHandler("client.js"));
 fu.get("/jquery.js", fu.staticHandler(DEBUG ? "jquery-1.4.4.js" : "jquery-1.4.4.min.js"));
 
+/*
+fu.get('/join', function (req, res) {
+	res.simpleJSON(200, {msg: 'It works!'});
+});
+*/
+
 fu.get("/join", function (req, res) {
   var q = url.parse(req.url, true).query;
 
@@ -83,7 +88,7 @@ fu.get("/join", function (req, res) {
 	  starttime: starttime
   };
 
-  ab.login(q.id, q.pwd, function (error) {
+  ab.login(q.id, q.pwd, function (error, name) {
 	  if (error) {
 		  var msg = 'login failed with id: ' + q.id;
 		  console.log('server.js: ' + msg);
@@ -91,6 +96,8 @@ fu.get("/join", function (req, res) {
 		  session.destroy();
 		  throw error;
 	  }
+
+	  result.name = name;
 
 	  if (!q.direct) {
   		res.simpleJSON(200, result);
