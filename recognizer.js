@@ -15,6 +15,8 @@ function read(raw, charset) {
 
 			html = html.substr(pos + key.length);
 
+			//console.log('recognizer.js: find result is: ' + k);
+
 			return k;
 		},
 		// '10시간 2분' 혹은 '30분' 형식의 입력을 받아 '10:02', '00:30' 으로 출력
@@ -24,8 +26,8 @@ function read(raw, charset) {
 
 			var hm = v.match(/[0-9]+/g);
 
-			console.log('recognizer.js: format() input text: ' + v);
-			console.log('recognizer.js: format() regex result: ' + JSON.stringify(hm));
+			//console.log('recognizer.js: format() input text: ' + v);
+			//console.log('recognizer.js: format() regex result: ' + JSON.stringify(hm));
 
 			var h = hm[1] ? hm[0] : '0',
 			m = hm[1] ? hm[1] : hm[0];
@@ -44,6 +46,8 @@ function read(raw, charset) {
 		var encoding = getCharset(),
 		conv = encoding == 'utf-8' ? { convert: function(b) { return b; } } : new Iconv(encoding, 'utf-8'),
 		html = conv.convert(s).toString('utf8');
+
+		//console.log('recognizer.js: whole input is: ' + html);
 
 		var n = find(nameKey),
 		r = find(attenKey),
@@ -65,6 +69,28 @@ function read(raw, charset) {
 	})(raw);
 }
 
+var Recognizer = function() {};
+
+Recognizer.prototype = {
+	feed: function(raw) {
+		if (this.buf == undefined) {
+			this.buf = raw;
+			return;
+		}
+
+		var buf = new Buffer(this.buf.length + raw.length);
+		this.buf.copy(buf, 0);
+		raw.copy(buf, this.buf.length);
+
+		this.buf = buf;
+	},
+	read: function(charset) {
+		return read(this.buf, charset);
+	}
+}
+
+exports.Recognizer = Recognizer;
+
 //exported features
 
 /** 
@@ -80,7 +106,4 @@ function read(raw, charset) {
  * avg_latetime: '00:00'
  * point: '79.29'
  */
-exports.read = function (raw, charset) {
-	return read(raw, charset);
-}
 

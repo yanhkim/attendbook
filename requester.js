@@ -2,7 +2,7 @@ var http = require('http');
 console.log('http module loaded');
 
 function Requester(host) {
-	this.client = http.createclient(80, host);
+	this.client = http.createClient(80, host);
 	this.host = host;
 
 	this.default_header = {
@@ -16,7 +16,7 @@ function Requester(host) {
 }
 
 Requester.prototype = {
-	setCommands: function() {
+	setCommands: function(commands) {
 		this.commands = commands.reverse();	//for using javascript's own pop|push function
 	},
 	run: function() {
@@ -95,6 +95,7 @@ Requester.prototype = {
 			});
 
 			r.on('end', function() {
+				context.activeCommand.onEnd();
 				onEnd && onEnd(context);
 			});
 		}
@@ -179,6 +180,9 @@ Command.prototype = {
 	},
 	onData: function(data) {
 		this.onEvent('data', data);
+	},
+	onEnd: function() {
+		this.onEvent('end');
 	}
 };
 

@@ -114,9 +114,13 @@ fu.get("/join", function (req, res) {
 			  throw error;
 		  }
 
+		  console.log(JSON.stringify(records));
+
 		  result.records = records;
 		  res.simpleJSON(200, result);
 		  session.poke();
+		  // below for debug purpose
+		  session.destroy();
 	  });
   });
 });

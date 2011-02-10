@@ -402,6 +402,12 @@ function showConnect() {
 	$('#signin-id').focus();
 }
 
+function showRecord() {
+	$('#connect').hide();
+	$('#loading').hide();
+	$('#record').show();
+}
+
 $(document).ready(function() {
 	$('#signin-button').click(function (event) {
 		event.stopPropagation();
@@ -425,8 +431,44 @@ $(document).ready(function() {
 	showConnect();
 });
 
+function fillRecord(record) {
+	var template = $('#record table .template'),
+	r = template.clone();
+
+	var res = record.date.match(/\d+/g),
+	d = new Date(res[0], res[1] - 1, res[2]);
+
+	r.find('.date').text(d.toDateString());
+	r.find('.rank').text(record.rank);
+	r.find('.grade').text(record.grade);
+	r.find('.late-rate').text(record.lrate);
+	r.find('.avg-facetime').text(record.aftime);
+	r.find('.avg-latetime').text(record.altime);
+	r.find('.score').text(record.point);
+
+	r.appendTo('#record table tbody').removeClass('template').show();
+}
+
+function fillRecords(records) {
+	for (var i = 0; i < records.length; i++) {
+		fillRecord(records[i]);
+	}
+}
+
+function fillName(name) {
+	$('#record #user-name').text(name);
+}
+
 function onSignin (session) {
-	alert(JSON.stringify(session));
+	fillName(session.name);
+
+	if (session.records)
+		fillRecords(session.records);
+	else {
+		//TODO
+	}
+
+	showRecord();
 }
 
 //if we can, notify the server that we're going away.
