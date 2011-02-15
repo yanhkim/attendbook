@@ -11,13 +11,8 @@ var Data = require('./db').Data;
 var db = require('./db');
 console.log('sqlite db loaded');
 
-function store(r, id, done) {
-	var insert = function() {
-		var data = new Data(id, r.rank, r.grade, r.late_rate, r.avg_facetime, r.avg_latetime, r.point);
-		db.insert(data, function() {
-			done();
-		});
-	}
+function need2insert(id, done) {
+	var res = {};
 
 	// d: newest date string stored in db. it's local time (GMT +9)
 	var sameDay = function(target) {
@@ -31,19 +26,30 @@ function store(r, id, done) {
 		return today.toDateString() == target.toDateString();
 	}
 
-	var newUser = function() {
-		db.register(id, r.name);
+	var holyDay = function() {
+		return false;
+
+		//TODO
 	}
 
 	db.query(id, function(datas) {
-		if (datas.length == 0) {
-			newUser();
-			return insert();
-		}
+		if (datas.length == 0)
+			return done({newuser: true, yes: true});
 
-		if (!sameDay(datas[0].date))
-			return insert();
+		if (holyDay() || sameDay(datas[0].date))
+			return done({no: true, name: datas[0].name});
 
+		return done({yes: true});
+	}, 1);
+}
+
+function register(id, name) {
+	db.register(id, r.name);
+}
+
+function store(r, id, done) {
+	var data = new Data(id, r.rank, r.grade, r.late_rate, r.avg_facetime, r.avg_latetime, r.point);
+	db.insert(data, function() {
 		done();
 	});
 }
@@ -55,38 +61,52 @@ function query(id, cb) {
 }
 
 ab.login = function(id, pwd, onResult) {
-	var req = new Requester('www.infraware.net');
 
-	var commands = (function() {
-		var commands = [],
-		command = new Command('POST', '/MainPage/Login_Company.asp');
-		command.setBody('cboCompany=Infraware&txtID=' + id + '&txtPasswd=' + pwd + '&URLInfo=http%3A%2F%2Fwww.infraware.net%2FMyPage%2FMainFrame.asp%3FRightMenuURL%3Dhttp%3A%2F%2Fwww.infraware.net%2FMyPage%2FMyInfo%2FMyInfoEdit.asp');
-		commands.push(command);
+	need2insert(id, function(res) {
+		if (res.no) {
+			console.log('already has newest record for user: ' + id + '(' + res.name + ')');
+			return onResult(null, res.name);
+		}
 
-		command = new Command('POST', '/MainPage/Login_User.asp');
-		command.setBody('UserID=' + id + '&UserPasswd=' + pwd + '&URLInfo=http%3A%2F%2Fwww.infraware.net%2FMyPage%2FMainFrame.asp%3FRightMenuURL%3Dhttp%3A%2F%2Fwww.infraware.net%2FMyPage%2FMyInfo%2FMyInfoEdit.asp');
-		commands.push(command);
+		var req = new Requester('www.infraware.net');
 
-		var recognizer = new Recognizer();
-		command = new Command('GET', '/MyPage/MyInfo/MyInfoEdit.asp');
-		command.on('data', function(data) {
-			console.log('data received');
-			recognizer.feed(data);
-		});
-		command.on('end', function() {
-			console.log('data ends');
-			var record = recognizer.read();
-			console.log(JSON.stringify(record));
-			store(record, id, function() {
-				onResult(null, record.name);
+		var commands = (function() {
+			var commands = [],
+			command = new Command('POST', '/MainPage/Login_Company.asp');
+			command.setBody('cboCompany=Infraware&txtID=' + id + '&txtPasswd=' + pwd + '&URLInfo=http%3A%2F%2Fwww.infraware.net%2FMyPage%2FMainFrame.asp%3FRightMenuURL%3Dhttp%3A%2F%2Fwww.infraware.net%2FMyPage%2FMyInfo%2FMyInfoEdit.asp');
+			commands.push(command);
+
+			command = new Command('POST', '/MainPage/Login_User.asp');
+			command.setBody('UserID=' + id + '&UserPasswd=' + pwd + '&URLInfo=http%3A%2F%2Fwww.infraware.net%2FMyPage%2FMainFrame.asp%3FRightMenuURL%3Dhttp%3A%2F%2Fwww.infraware.net%2FMyPage%2FMyInfo%2FMyInfoEdit.asp');
+			commands.push(command);
+
+			var recognizer = new Recognizer();
+			command = new Command('GET', '/MyPage/MyInfo/MyInfoEdit.asp');
+			command.on('data', function(data) {
+				console.log('data received');
+				recognizer.feed(data);
 			});
-		});
-		commands.push(command);
-		return commands;
-	})();
+			command.on('end', function() {
+				console.log('data ends');
+				var record = recognizer.read();
+				console.log(JSON.stringify(record));
 
-	req.setCommands(commands);
-	req.run();
+				if (res.newuser)
+					register(id, record.name);
+
+				store(record, id, function() {
+					onResult(null, record.name);
+				});
+			});
+			commands.push(command);
+			return commands;
+		})();
+
+		req.setCommands(commands);
+		req.run();
+	});
+
+
 }
 
 ab.query = function(id, onResult) {

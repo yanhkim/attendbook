@@ -73,8 +73,10 @@ var SQL_REGISTER =
 "VALUES ('{0}', '{1}');";
 
 var SQL_QUERY =
-"SELECT id, date, rank, grade, late_rate, avg_facetime, avg_latetime, point " +
-"FROM records WHERE id = '{0}' ORDER BY date DESC;";
+"SELECT infos.id, name, date, rank, grade, late_rate, avg_facetime, avg_latetime, point " +
+"FROM records, infos WHERE records.id = infos.id and records.id = '{0}' ORDER BY date DESC;";
+
+var SQL_QUERY_LIMIT = SQL_QUERY.replace(/;$/, ' ') + "LIMIT {1};";
 
 db.open('attendbook.db', function (error) {
 	if (error) {
@@ -149,10 +151,11 @@ function register(id, name) {
 	});
 }
 
-function query(key, onData) {
+function query(key, onData, limit) {
 	console.log('db.js: query for : ' + key);
 
-	var sql = format(SQL_QUERY, escape(key));
+	var sql = limit ?	format(SQL_QUERY_LIMIT, escape(key), escape(limit)) :
+						format(SQL_QUERY, escape(key));
 
 	lock.set();
 	db.execute(sql, function (error, rows) {
@@ -199,6 +202,7 @@ Data.prototype = {
 	},
 	readfrom: function(row) {
 		this.key = unescape(row.id);
+		this.name = unescape(row.name);
 		this.date = new Date(row.date);
 		this.rank = row.rank;
 		this.grade = unescape(row.grade);
