@@ -1,5 +1,5 @@
 HOST = null; // localhost
-PORT = 8002;
+PORT = 8005;
 
 DEBUG = false;
 
@@ -65,6 +65,7 @@ fu.get("/", fu.staticHandler("index.html"));
 fu.get("/style.css", fu.staticHandler("style.css"));
 fu.get("/client.js", fu.staticHandler("client.js"));
 fu.get("/jquery.js", fu.staticHandler(DEBUG ? "jquery-1.4.4.js" : "jquery-1.4.4.min.js"));
+fu.get("/aes.js", fu.staticHandler("aes.js"));
 
 /*
 fu.get('/join', function (req, res) {
@@ -94,7 +95,8 @@ fu.get("/join", function (req, res) {
 		  console.log('server.js: ' + msg);
 		  res.simpleJSON(400, {error: msg});
 		  session.destroy();
-		  throw error;
+		  //throw error;
+		  return;
 	  }
 
 	  result.name = name;

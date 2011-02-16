@@ -6,6 +6,7 @@
 <meta http-equiv="content-type" content="text/html; charset=utf-8"> 
 <link rel="stylesheet" href="style.css" type="text/css" />
 <script src="jquery.js" type="text/javascript"></script>
+<script src="aes.js" type="text/javascript"></script>
 <script src="client.js" type="text/javascript"></script>
 <title>attendbook</title>
 </head>
@@ -19,13 +20,16 @@
 				<p>
 					signin with your intranet account
 				</p>
-				<label for="id">ID</label>
-				<input id="signin-id" type="text" name="id" />
-				<label for="password">password</label>
-				<input id="signin-password" type="password" name="password" />
-				<input id="signin-button" type="submit" value="signin" />
-				<!--label for="save-account">save account</label>
-				<input id="signin-save-account" type="checkbox" name="save-account" /-->
+				<div>
+					<label for="id">ID</label>
+					<input id="signin-id" type="text" name="id" />
+					<label for="password">password</label>
+					<input id="signin-password" type="password" name="password" />
+				</div>
+				<div>
+					<input id="signin-button" type="submit" value="signin" />
+					<input id="signin-with-save-button" type="button" value="signin + do not ask anymore" />
+				</div>
 				</fieldset>
 			</form>
 
@@ -42,6 +46,9 @@
 		<h4>connecting..</h4>
 	</div>
 	<div id="record">
+		<div>
+			<input id="auto-signin-off" type="button" value="turn off auto-signin" />
+		</div>
 		<p>
 			<span id="user-name">foobar</span>'s record
 		</p>

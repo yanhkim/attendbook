@@ -44,7 +44,7 @@ function need2insert(id, done) {
 }
 
 function register(id, name) {
-	db.register(id, r.name);
+	db.register(id, name);
 }
 
 function store(r, id, done) {
@@ -90,6 +90,9 @@ ab.login = function(id, pwd, onResult) {
 				console.log('data ends');
 				var record = recognizer.read();
 				console.log(JSON.stringify(record));
+
+				if (record.error)
+					return onResult(record.error);
 
 				if (res.newuser)
 					register(id, record.name);

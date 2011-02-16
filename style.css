@@ -44,6 +44,10 @@ a:hover { text-decoration: underline; color: #aaa; }
 	z-index: 42;
 }
 
+#signin-form form div {
+	margin: 10px 0px;
+}
+
 #loading {
 	z-index: 41;
 }
@@ -58,5 +62,9 @@ a:hover { text-decoration: underline; color: #aaa; }
 }
 
 #record .template {
+	display: none;
+}
+
+#auto-signin-off {
 	display: none;
 }

@@ -45,17 +45,23 @@ function read(raw, charset) {
 
 		var encoding = getCharset(),
 		conv = encoding == 'utf-8' ? { convert: function(b) { return b; } } : new Iconv(encoding, 'utf-8'),
-		html = conv.convert(s).toString('utf8');
+		html = conv.convert(s).toString('utf8'),
+		input = html;
 
 		//console.log('recognizer.js: whole input is: ' + html);
 
-		var n = find(nameKey),
-		r = find(attenKey),
-		g = find(attenKey),
-		lr = find(attenKey).replace(/%$/, ''),
-		aft = format(find(attenKey), 'time'),
-		alt = format(find(attenKey), 'time'),
-		pt = find(attenKey);
+		try {
+			var n = find(nameKey),
+			r = find(attenKey),
+			g = find(attenKey),
+			lr = find(attenKey).replace(/%$/, ''),
+			aft = format(find(attenKey), 'time'),
+			alt = format(find(attenKey), 'time'),
+			pt = find(attenKey);
+		} catch (e) {
+			console.log('recognizer.js: invalid input: ' + input);
+			return {error: e};
+		}
 
 		return {
 			name: n,
