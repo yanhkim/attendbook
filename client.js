@@ -133,9 +133,7 @@ function validate() {
 	var id = $('#signin-id').val(),
 	pwd = $('#signin-password').val();
 
-	var filter = new RegExp('^[a-zA-Z][a-z-A-Z0-9]+$');
-
-	if (id.match(filter) && pwd.match(filter))
+	if (id.match(/^[a-zA-Z][a-zA-Z0-9]+$/) && !pwd.match(/^\s*$/))
 		return true;
 
 	return false;
@@ -218,6 +216,43 @@ function fillRecords(records) {
 	}
 }
 
+function format(s) {
+   	var formatted = s;
+   	for (var i = 1; i < arguments.length; i++) {
+       	var regexp = new RegExp('\\{' + (i - 1) + '\\}', 'gi');
+       	formatted = formatted.replace(regexp, arguments[i]);
+   	}
+   	return formatted;
+}
+
+function plotChart(records) {
+	var ranks = [];
+	for (var i = 0; i < records.length; i++) {
+		ranks.push(records[i].rank);
+	}
+	ranks = ranks.reverse();
+
+	var min = Math.min.apply(this, ranks),
+	max = Math.max.apply(this, ranks);
+
+	ranks = ranks.map(function(k) {
+		return Math.abs(k - max);
+	});
+
+	var template = 'http://chart.apis.google.com/chart' +
+		'?chxr=0,{0},{1}' +
+		'&chxt=y&chs=600x330' +
+		'&cht=lc&chco=FF1010' +
+		'&chds={2},{3}' +
+		'&chd=t:{4}' +
+		'&chg=-1,0' +
+		'&chls=2' +
+		'&chma=35,20,20,30|0,5';
+
+	var i = $('<img>').attr('src', format(template, max, min, Math.min.apply(this, ranks) - 3, Math.max.apply(this, ranks) + 3, ranks.toString()));
+	i.insertBefore($('#record table'));
+}
+
 function clearRecords() {
 	var t = $('#record table .template');
 	t.nextAll().remove();
@@ -230,9 +265,10 @@ function fillName(name) {
 function onSignin (session) {
 	fillName(session.name);
 
-	if (session.records)
+	if (session.records) {
+		plotChart(session.records);
 		fillRecords(session.records);
-	else {
+	} else {
 		//TODO
 	}
 
