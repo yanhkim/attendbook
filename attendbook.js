@@ -20,9 +20,6 @@ function need2insert(id, done) {
 		var d = new Date(),
 		today = new Date(d.getTime() + (9 * 60 * 60 * 1000));
 
-		console.log('today: ' + today + ', target: ' + target);
-
-		//return today.match(/.*\d{4}/).toString() == target.match(/.*\d{4}/).toString();
 		return today.toDateString() == target.toDateString();
 	}
 
@@ -89,7 +86,7 @@ ab.login = function(id, pwd, onResult) {
 			command.on('end', function() {
 				console.log('data ends');
 				var record = recognizer.read();
-				console.log(JSON.stringify(record));
+				//console.log(JSON.stringify(record));
 
 				if (record.error)
 					return onResult(record.error);

@@ -235,9 +235,7 @@ function plotChart(records) {
 	var min = Math.min.apply(this, ranks),
 	max = Math.max.apply(this, ranks);
 
-	ranks = ranks.map(function(k) {
-		return Math.abs(k - max);
-	});
+	ranks = ranks.map(function(k) { return Math.abs(k - max); });
 
 	var template = 'http://chart.apis.google.com/chart' +
 		'?chxr=0,{0},{1}' +
