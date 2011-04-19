@@ -1,5 +1,7 @@
 HOST = null; // localhost
-PORT = 8002;
+PORT = process.argv.length > 2 ? process.argv[2] : 8002;
+
+console.log('using port no:', PORT);
 
 DEBUG = false;
 
