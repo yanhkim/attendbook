@@ -57,6 +57,10 @@ function query(id, cb) {
 	});
 }
 
+function who(cb) {
+	db.who( function(names) { cb(null, names); } );
+}
+
 ab.login = function(id, pwd, onResult) {
 
 	need2insert(id, function(res) {
@@ -111,5 +115,9 @@ ab.login = function(id, pwd, onResult) {
 
 ab.query = function(id, onResult) {
 	query(id, onResult);
+}
+
+ab.who = function(cb) {
+	who(cb);
 }
 

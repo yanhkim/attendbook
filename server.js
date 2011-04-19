@@ -26,7 +26,7 @@ function query_cb(id, res, result) {
 			throw error;
 		}
 
-		console.log(JSON.stringify(records));
+		//console.log(JSON.stringify(records));
 
 		result.records = records;
 		res.simpleJSON(200, result);
@@ -77,3 +77,4 @@ fu.get('/who', function (req, res) {
 		res.simpleJSON(200, list);
 	});
 });
+

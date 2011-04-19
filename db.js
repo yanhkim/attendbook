@@ -39,6 +39,9 @@ var later = (function() {
 				case 'register':
 					register(job[1], job[2]);
 					break;
+				case 'who':
+					who(job[1]);
+					break;
 			}
 		}
 	}
@@ -77,6 +80,8 @@ var SQL_QUERY =
 "FROM records, infos WHERE records.id = infos.id and records.id = '{0}' ORDER BY date DESC;";
 
 var SQL_QUERY_LIMIT = SQL_QUERY.replace(/;$/, ' ') + "LIMIT {1};";
+
+var SQL_WHO = "SELECT * FROM infos;";
 
 db.open('attendbook.db', function (error) {
 	if (error) {
@@ -176,6 +181,31 @@ function query(key, onData, limit) {
 	});
 }
 
+function who(onData) {
+	console.log('db.js: who request');
+
+	var sql = SQL_WHO;
+
+	lock.set();
+	db.execute(sql, function (error, rows) {
+		lock.clear();
+
+		if (error) {
+			console.log('db.js: error on attempt to who query' + '\nSQL: ' + sql);
+			throw error;
+		}
+
+		var datas = {};
+
+		for (var i = 0; i < rows.length; i++) {
+			var row = rows[i];
+			datas[row.id] = unescape(row.name);
+		}
+
+		onData(datas);
+	});
+}
+
 function format(s) {
    	var formatted = s;
    	for (var i = 1; i < arguments.length; i++) {
@@ -246,3 +276,14 @@ exports.register = function(id, name) {
 
 	register(id, name);
 }
+
+exports.who = function(onData) {
+	if (lock.p()) {
+		console.log('db.js: db busy. who job delayed');
+		later.register("who", onData);
+		return;
+	}
+
+	who(onData);
+};
+

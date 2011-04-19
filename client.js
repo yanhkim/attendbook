@@ -169,7 +169,7 @@ $(document).ready(function() {
 
 		info = new SigninInfo($('#signin-id').val(), $('#signin-password').val());
 		info.signin();
-
+		
 		return false;
 	});
 
@@ -260,8 +260,24 @@ function fillName(name) {
 	$('#record #user-name').text(name);
 }
 
+function clearDisplay() {
+	var pos = $('#record table .template');
+
+	while (true) {
+		var r = pos.next();
+		if (r.length == 0)
+			break;
+
+		r.remove();
+	}
+
+	$('#record img').remove();
+}
+
 function onSignin (session) {
 	fillName(session.name);
+
+	clearDisplay();
 
 	if (session.records) {
 		plotChart(session.records);
@@ -271,6 +287,65 @@ function onSignin (session) {
 	}
 
 	showRecord();
+	setupUserList(session.name);
+}
+
+var userList;
+
+function setupUserList(name) {
+	if (userList) {
+		setCurrentUser(name);
+		return;
+	}
+
+	var _name = name;
+
+	$.ajax({
+		cache: false,
+		dataType: 'json',
+		url: '/who',
+		success: function(users) {
+			userList = users;
+
+			var t = $('#record select'),
+			mold = $('<option>');
+
+			for (var id in users) {
+				var name = users[id];
+				t.append(mold.clone().text(name + '(' + id + ')'));
+			}
+
+			t.change(function() {
+				var text = $('#record select option:selected').text();
+				id = text.replace(/^[^\(]*\(|\)$/g, '');
+				$.ajax({
+					cache: false,
+					dataType: 'json',
+					url: '/query',
+					data: { id: id },
+					error: function() {
+						alert('query error');
+					},
+					success: function(res) {
+						res.name = text.match(/^[^\(]*/)[0];
+						onSignin(res);
+					}
+				});
+			});
+
+			setCurrentUser(_name);
+		}
+	});
+}
+
+function setCurrentUser(name) {
+	$('#record select option').each(function() {
+		$(this).removeAttr('disabled');
+		if ($(this).text().indexOf(name) > -1) {
+			$(this).attr('selected', 'true');
+			$(this).attr('disabled', 'disabled');
+		}
+	});
 }
 
 //if we can, notify the server that we're going away.
